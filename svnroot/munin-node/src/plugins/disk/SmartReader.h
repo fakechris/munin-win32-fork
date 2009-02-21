@@ -9,12 +9,9 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#define _WIN32_WINNT 0x500
-//#include <devioctl.h>
-//#include <ntdddisk.h>
-//#include <winioctl.h>
-#pragma warning(disable:4786)
-#include <map>
+#include "../../core/TString.h"
+#include "../../core/JCThread.h"
+
 typedef std::map<DWORD,LPVOID> SMARTINFOMAP;
 
 

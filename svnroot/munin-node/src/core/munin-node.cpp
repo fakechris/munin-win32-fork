@@ -18,12 +18,6 @@
 
 #include "StdAfx.h"
 
-#ifdef _DEBUG
-#define _CRTDBG_MAP_ALLOC 
-#include <stdlib.h>
-#include <crtdbg.h>
-#endif
-
 #include "Service.h"
 #include "MuninNodeSettings.h"
 #include "../extra/verinfo.h"
@@ -32,7 +26,7 @@
 int YourAllocHook(int allocType, void *userData, size_t size, int blockType, long requestNumber, const unsigned char *filename, int lineNumber)
 {
   //I can use this to find exactly where a leak started
-  if (size == 4 && requestNumber == 139)
+  if (size == 96 && (requestNumber == 2075 || requestNumber == 1358))
   {
     printf("cool");
   }
@@ -57,7 +51,12 @@ int main(int argc, char* argv[])
   _sntprintf(displayName, 255, _T("Munin Node for Windows %i.%i.%i"), ver.GetFileVersionMajor(), ver.GetFileVersionMinor(), ver.GetFileVersionQFE());
 
   // Load Configuration
-  g_Config.SetPath("munin-node.ini");
+  // Get the executable file path
+  char szConfigFilePath[MAX_PATH];
+  ::GetModuleFileNameA(NULL, szConfigFilePath, MAX_PATH);
+  PathRemoveFileSpecA(szConfigFilePath);
+  PathAppendA(szConfigFilePath, "\\munin-node.ini");
+  g_Config.SetPath(szConfigFilePath);
   g_Config.ReadFile();
 
   // Prepare Service modules
@@ -105,9 +104,6 @@ int main(int argc, char* argv[])
   }	
 
   _Module.Start();
-
-  // Save any changes to the INI file
-  g_Config.WriteFile();
 
   return 0;
 }

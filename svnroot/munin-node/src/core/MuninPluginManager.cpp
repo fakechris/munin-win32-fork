@@ -26,22 +26,37 @@
 #include "../plugins/network/NetworkMuninNodePlugin.h"
 #include "../plugins/process/ProcessesMuninNodePlugin.h"
 #include "../plugins/mbm/MBMMuninNodePlugin.h"
-#include "../plugins/uptime/UptimeMuninNodePlugin.h"
 #include "../plugins/disk/HDMuninNodePlugin.h"
 #include "../plugins/disk/SMARTMuninNodePlugin.h"
-#include "../plugins/disk/DiskTimeMuninNodePlugin.h"
 #include "../plugins/speedfan/SpeedFanNodePlugin.h"
-#include "../plugins/python/PythonMuninNodePlugin.h"
 #include "../plugins/PerfCounterMuninNodePlugin.h"
+#include "../plugins/external/ExternalMuninNodePlugin.h"
+
+#ifdef _DEBUG
+class MuninPluginManagerTestThread : public JCThread {
+  MuninPluginManager *m_Manager;
+public:
+  MuninPluginManagerTestThread(MuninPluginManager *manager) : m_Manager(manager) {};
+
+  virtual void *Entry() {
+    while (!TestDestroy()) {
+      m_Manager->TestPlugins();
+      for (int i = 0; i < 50 && !TestDestroy(); i++)
+        Sleep(100);
+    }
+    return NULL;
+  };
+};
+MuninPluginManagerTestThread *t = NULL;
+#endif
 
 MuninPluginManager::MuninPluginManager()
 {
-  
   if (g_Config.GetValueB("Plugins", "Disk", true))
     AddPlugin(new DiskMuninNodePlugin());
   if (g_Config.GetValueB("Plugins", "Memory", true))
     AddPlugin(new MemoryMuninNodePlugin());
-  if (g_Config.GetValueB("Plugins", "Processes", true))
+ if (g_Config.GetValueB("Plugins", "Processes", true))
     AddPlugin(new ProcessesMuninNodePlugin());
   if (g_Config.GetValueB("Plugins", "Network", true))
     AddPlugin(new NetworkMuninNodePlugin());
@@ -60,28 +75,27 @@ MuninPluginManager::MuninPluginManager()
   if (g_Config.GetValueB("Plugins", "HD", true))
     AddPlugin(new HDMuninNodePlugin());
 
-  if (g_Config.GetValueB("Plugins", "Uptime", true))
-    AddPlugin(new UptimeMuninNodePlugin());
   if (g_Config.GetValueB("Plugins", "SMART", false))
     AddPlugin(new SMARTMuninNodePlugin());
-  if (g_Config.GetValueB("Plugins", "DiskTime", false))
-    AddPlugin(new DiskTimeMuninNodePlugin());
   
-  if (g_Config.GetValueB("Plugins", "Python", true)) {
-    int pythonCount = g_Config.NumValues("PythonPlugin");
-    for (int i = 0; i < pythonCount; i++) {
-      std::string valueName = g_Config.GetValueName("PythonPlugin", i); 
-      std::string filename = g_Config.GetValue("PythonPlugin", valueName);
-      PythonMuninNodePlugin *plugin = new PythonMuninNodePlugin(filename.c_str());
+  if (g_Config.GetValueB("Plugins", "SpeedFan", false))
+    AddPlugin(new SpeedFanNodePlugin());
+  
+  if (g_Config.GetValueB("Plugins", "External", true)) {
+    int externalCount = g_Config.NumValues("ExternalPlugin");
+    for (int i = 0; i < externalCount; i++) {
+      std::string valueName = g_Config.GetValueName("ExternalPlugin", i); 
+      std::string filename = g_Config.GetValue("ExternalPlugin", valueName);
+      ExternalMuninNodePlugin *plugin = new ExternalMuninNodePlugin(filename);
       if (plugin->IsLoaded()) {
         AddPlugin(plugin);
       } else {
-        _Module.LogEvent("Failed to load Python plugin: %s", filename.c_str());
+        _Module.LogEvent("Failed to load External plugin: %s", filename.c_str());
         delete plugin;
       }
     }
   }
-  
+
   const char *perfPrefix = PerfCounterMuninNodePlugin::SectionPrefix;
   size_t perfPrefixLen = strlen(perfPrefix);
   for (size_t i = 0; i < g_Config.GetNumKeys(); i++) {
@@ -96,25 +110,21 @@ MuninPluginManager::MuninPluginManager()
       }
     }
   }
+  
 #ifdef _DEBUG
-  // Test Plugins
-  char buffer[8096];
-  for (size_t i = 0; i < m_Plugins.size(); i++) {
-    _Module.LogEvent("Name: %s", m_Plugins[i]->GetName());
-    
-    buffer[0] = NULL;
-    m_Plugins[i]->GetConfig(buffer,  sizeof(buffer));
-    _Module.LogEvent("Config:\n%s", buffer);
-    
-    buffer[0] = NULL;
-    m_Plugins[i]->GetValues(buffer, sizeof(buffer));
-    _Module.LogEvent("Value:\n%s", buffer);
-  }
-#endif  
+  t = new MuninPluginManagerTestThread(this);
+  t->JCThread_AddRef();
+  t->Run();  
+#endif
 }
 
 MuninPluginManager::~MuninPluginManager()
 {
+#ifdef _DEBUG
+  t->Stop();
+  Sleep(150);
+  t->JCThread_RemoveRef();
+#endif
   for (size_t i = 0; i < m_Plugins.size(); i++) {
     delete m_Plugins[i];
   }
@@ -122,6 +132,7 @@ MuninPluginManager::~MuninPluginManager()
 
 void MuninPluginManager::AddPlugin(MuninNodePlugin *plugin)
 {
+  _Module.LogEvent("Loaded plugin [%s]", typeid(*plugin).name());
   if (!plugin->IsThreadSafe())
     plugin = new MuninNodePluginLockWrapper(plugin);
   m_Plugins.push_back(plugin);
@@ -154,4 +165,21 @@ void MuninPluginManager::FillPluginList(char *buffer, int len)
     }
   }
   strncat(buffer, "\n", len);
+}
+
+void MuninPluginManager::TestPlugins()
+{
+  // Test Plugins
+  char buffer[8096];
+  for (size_t i = 0; i < m_Plugins.size(); i++) {
+    _Module.LogEvent("Name: %s", m_Plugins[i]->GetName());
+    
+    buffer[0] = NULL;
+    m_Plugins[i]->GetConfig(buffer,  sizeof(buffer));
+    _Module.LogEvent("Config:\n%s", buffer);
+    
+    buffer[0] = NULL;
+    m_Plugins[i]->GetValues(buffer, sizeof(buffer));
+    _Module.LogEvent("Value:\n%s", buffer);
+  }
 }

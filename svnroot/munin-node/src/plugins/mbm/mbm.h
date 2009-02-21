@@ -26,8 +26,6 @@
 #ifndef MBM_HPP
 #define MBM_HPP
 
-#include <windows.h>
-
 namespace mbm {
 
 #define NOTFOUND_STRING         "not_found"

@@ -20,28 +20,17 @@
 #include "MuninNodeServer.h"
 #include "Service.h"
 
+void MuninNodeServer::Stop()
+{
+  JCThread::Stop();
+  // Close the server socket to force the accept call to abort
+  m_ServerSocket.Close();
+}
+
 void *MuninNodeServer::Entry()
 {	
-  SOCKET server;
-  WSADATA wsaData;
-  sockaddr_in local;
-
-  //WSAStartup initializes the program for calling WinSock.
-  //The first parameter specifies the highest version of the 
-  //WinSock specification, the program is allowed to use.
-  int wsaret = WSAStartup(0x101, &wsaData);
-  if (wsaret != 0) {
-    return 0;
-  }
-
-  //Now we populate the sockaddr_in structure
-  local.sin_family = AF_INET; //Address family
-  local.sin_addr.s_addr = INADDR_ANY; //Wild card IP address
-  local.sin_port = htons((u_short)4949); //port to use
-
-  //the socket function creates our SOCKET
-  server = socket(AF_INET, SOCK_STREAM, 0);
-  if (server == INVALID_SOCKET) {
+  //the socket function creates our SOCKET  
+  if (!m_ServerSocket.Create()) {
     return 0;
   }
 
@@ -49,35 +38,33 @@ void *MuninNodeServer::Entry()
   //structure. Basically it connects the socket with 
   //the local address and a specified port.
   //If it returns non-zero quit, as this indicates error
-  if (bind(server, (sockaddr*)&local, sizeof(local)) != 0) {
+  if (!m_ServerSocket.Bind(4949)) {
     return 0;
   }
 
   //listen instructs the socket to listen for incoming 
   //connections from clients. The second arg is the backlog
-  if (listen(server, 10) != 0) {
+  if (!m_ServerSocket.Listen(10)) {
     return 0;
   }
-
-  SOCKET client;
-  sockaddr_in from;
-  int fromlen = sizeof(from);
 
   _Module.LogEvent("Server Thread Started");
 
   while (!TestDestroy()) {
     // Wait for new client connection
-    client = accept(server, (struct sockaddr*)&from, &fromlen);
-
-    _Module.LogEvent("Connection from %s", inet_ntoa(from.sin_addr));
-    // Start child thread to process client socket
-    MuninNodeClient *clientThread = new MuninNodeClient(client, from, this, &m_PluginManager);
-    clientThread->Run();
+    JCSocket *client = new JCSocket();
+    if (m_ServerSocket.Accept(client)) {
+      _Module.LogEvent("Connection from %s", inet_ntoa(client->m_Address.sin_addr));
+      // Start child thread to process client socket
+      MuninNodeClient *clientThread = new MuninNodeClient(client, this, &m_PluginManager);
+      clientThread->Run();
+    } else {
+      delete client;
+      break;
+    }
   }
 
-  // Cleanup the server socket
-  closesocket(server);
-  WSACleanup();
+  m_ServerSocket.Shutdown(SD_SEND);
 
   return 0;
 }

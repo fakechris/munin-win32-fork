@@ -30,9 +30,6 @@ SMARTMuninNodePlugin::~SMARTMuninNodePlugin()
 
 int SMARTMuninNodePlugin::GetConfig(char *buffer, int len) 
 {
-  int ret = 0;
-  int index = 0;
-
   /*
   ret = _snprintf(buffer, len, "graph_title HDD temperature\n"
   "graph_args --base 1000 -l 0\n"
@@ -53,14 +50,11 @@ int SMARTMuninNodePlugin::GetConfig(char *buffer, int len)
   strncat(buffer, ".\n", len);
   */
 
-  return 0;
+  return -1;
 }
 
 int SMARTMuninNodePlugin::GetValues(char *buffer, int len) 
 { 
-  int index = 0;
-  int ret;    
-
   /*
   UpdateSMART();
   for (index = 0; index < m_Smart.m_ucDrivesWithInfo; index++) {
@@ -80,5 +74,5 @@ int SMARTMuninNodePlugin::GetValues(char *buffer, int len)
   strncat(buffer, ".\n", len);
   */
 
-  return 0;
+  return -1;
 }

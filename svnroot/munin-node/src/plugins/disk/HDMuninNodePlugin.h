@@ -5,7 +5,7 @@
 class HDMuninNodePlugin : public MuninNodePlugin {
 public:
   HDMuninNodePlugin();
-  ~HDMuninNodePlugin();
+  virtual ~HDMuninNodePlugin();
 
   virtual const char *GetName() { return "hdd"; };
   virtual int GetConfig(char *buffer, int len);

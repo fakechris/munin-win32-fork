@@ -81,7 +81,7 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
 
   int pos = 0;
   TCHAR *instanceName = instanceList;
-  while (instanceName[0] != NULL && instanceName[1] != NULL) {
+  while (instanceName[0] != NULL) {
     std::string counterInstanceName = T2AConvert(instanceName);
     m_CounterNames.push_back(counterInstanceName);
     while (instanceName[0] != NULL)
@@ -188,15 +188,25 @@ int PerfCounterMuninNodePlugin::GetConfig(char *buffer, int len)
     std::string graphDraw = g_Config.GetValue(m_SectionName, "GraphDraw", "LINE");
 
     assert(m_CounterNames.size() == m_Counters.size());
-    for (size_t i = 0; i < m_CounterNames.size(); i++) {
-      printCount = _snprintf(buffer, len, "%s_%i_.label %s\n"
-        "%s_%i_.draw %s\n", 
-        m_Name.c_str(), i, m_CounterNames[i].c_str(),
-        m_Name.c_str(), i, graphDraw.c_str());
-      len -= printCount;
-      buffer += printCount;
+      // We handle multiple counters
+      for (size_t i = 0; i < m_CounterNames.size(); i++) {
+        if (i == 0) {        
+          // First counter gets a normal name
+          printCount = _snprintf(buffer, len, "%s.label %s\n"
+            "%s.draw %s\n", 
+            m_Name.c_str(), m_CounterNames[i].c_str(),
+            m_Name.c_str(), graphDraw.c_str());
+        } else {
+          // Rest of the counters are numbered
+          printCount = _snprintf(buffer, len, "%s_%i_.label %s\n"
+            "%s_%i_.draw %s\n", 
+            m_Name.c_str(), i, m_CounterNames[i].c_str(),
+            m_Name.c_str(), i, graphDraw.c_str());
+        }
+        len -= printCount;
+        buffer += printCount;
+      }
     }
-  }
 
   strncat(buffer, ".\n", len);
   return 0;
@@ -229,7 +239,13 @@ int PerfCounterMuninNodePlugin::GetValues(char *buffer, int len)
         value = counterValue.largeValue * m_CounterMultiply;
         break;
     }
-    printCount = _snprintf(buffer, len, "%s_%i_.value %.2f\n", m_Name.c_str(), i, value);
+    if (i == 0) {
+      // First counter gets a normal name
+      printCount = _snprintf(buffer, len, "%s.value %.2f\n", m_Name.c_str(), value);
+    } else {
+      // Other counters are numbered
+      printCount = _snprintf(buffer, len, "%s_%i_.value %.2f\n", m_Name.c_str(), i, value);
+    }
     len -= printCount;
     buffer += printCount;
   }

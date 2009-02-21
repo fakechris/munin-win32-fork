@@ -5,7 +5,7 @@
 class SMARTMuninNodePlugin : public MuninNodePlugin {  
 public:
   SMARTMuninNodePlugin();
-  ~SMARTMuninNodePlugin();
+  virtual ~SMARTMuninNodePlugin();
 
   virtual const char *GetName() { return "smart"; };
   virtual int GetConfig(char *buffer, int len);

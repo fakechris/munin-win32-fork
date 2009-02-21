@@ -20,9 +20,8 @@
 #include "MuninNodeClient.h"
 #include "Service.h"
 
-MuninNodeClient::MuninNodeClient(SOCKET client, sockaddr_in from, JCThread *server, MuninPluginManager *pluginManager) 
+MuninNodeClient::MuninNodeClient(JCSocket *client, JCThread *server, MuninPluginManager *pluginManager) 
   : m_Client(client)
-  , m_From(from)
   , m_Server(server)
   , m_PluginManager(pluginManager)
 {
@@ -33,7 +32,7 @@ MuninNodeClient::~MuninNodeClient()
 {
   // Close the client socket
   if (m_Client != NULL) {
-    closesocket(m_Client);
+    delete m_Client;
   }
   m_Server->JCThread_RemoveRef();
 }
@@ -44,7 +43,7 @@ int MuninNodeClient::SendLine(const char *line) {
   int sent = 0;
 
   while (sent != len) {
-    ret = send(m_Client, line+sent, len-sent, 0);
+    ret = m_Client->Send(line+sent, len-sent);
     if (ret == SOCKET_ERROR) {
       _Module.LogEvent("Socket Error Sending: %i", WSAGetLastError());
       return -1;
@@ -67,12 +66,12 @@ int MuninNodeClient::RecvLine(char *line, int len) {
 
   // Read until we get an end-of-line marker
   while (strstr(line, "\n") == NULL) {
-    ret = recv(m_Client, line+received, len-received, 0);
+    ret = m_Client->Recv(line+received, len-received);
     if (ret == SOCKET_ERROR) {
       _Module.LogEvent("Socket Error Recv: %i", WSAGetLastError());
       return -1;
     } else if (ret == 0) {
-      _Module.LogEvent("Socket Error Recv: No data recieved");
+      //_Module.LogEvent("Socket Error Recv: No data recieved");
       return -1;
     }
     received += ret;

@@ -5,7 +5,7 @@ class ProcessesMuninNodePlugin : public MuninNodePlugin
 {
 public:
   ProcessesMuninNodePlugin();
-  ~ProcessesMuninNodePlugin();
+  virtual ~ProcessesMuninNodePlugin();
 
   virtual const char *GetName() { return "processes"; };
   virtual int GetConfig(char *buffer, int len);

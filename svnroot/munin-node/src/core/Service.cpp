@@ -14,12 +14,12 @@ CService _Module;
 
 CService::CService()
 {
-
+  
 }
 
 CService::~CService()
 {
-
+  
 }
 
 void CService::Init(LPCTSTR pServiceName,LPCTSTR pServiceDisplayedName)
@@ -36,6 +36,9 @@ void CService::Init(LPCTSTR pServiceName,LPCTSTR pServiceDisplayedName)
   m_status.dwServiceSpecificExitCode = 0;
   m_status.dwCheckPoint = 0;
   m_status.dwWaitHint = 0;
+
+  // Setup Event Log
+  m_EventLog.Init(m_szServiceName);
 }
 
 void CService::Start()
@@ -138,11 +141,28 @@ void CService::Run()
   // Save any changes to the INI file
   g_Config.WriteFile();
 
-  MSG msg;
-  while (GetMessage(&msg,NULL,NULL,NULL))
+  if (m_bService) 
   {
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
+    BOOL bRet;
+    MSG msg;
+    while ((bRet = GetMessage(&msg,NULL,NULL,NULL)) != 0)
+    {
+      if (bRet == -1)
+      {
+        // handle the error and possibly exit
+        break;
+      }
+      else
+      {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+      }
+    }
+  }
+  else
+  {
+    // Let the server go for a few seconds
+    Sleep(10 * 1000);
   }
 
   LogEvent("Stopping Server Thread");
@@ -250,6 +270,11 @@ BOOL CService::Uninstall(DWORD dwTimeout)
     MessageBox(NULL, _T("Couldn't remove firewall excception rule"), m_szServiceName, MB_OK);
   }
 
+  if (!m_EventLog.UnRegisterSource()) 
+  {
+    MessageBox(NULL, _T("Failed to unregister event log"), m_szServiceName, MB_OK);
+  }
+
   BOOL bDelete = ::DeleteService(hService);
   ::CloseServiceHandle(hService);
   ::CloseServiceHandle(hSCM);
@@ -293,22 +318,11 @@ void CService::LogEvent(LPCSTR pFormat, ...)
 
   if (m_bService)
   {
-    HANDLE hEventSource;
-    LPCTSTR lpszStrings[1];
-    TString msg = A2TConvert(chMsg);
-    lpszStrings[0] = msg.c_str();
-    /* Get a handle to use with ReportEvent(). */
-    hEventSource = RegisterEventSource(NULL, m_szServiceName);
-    if (hEventSource != NULL)
-    {
-      /* Write to event log. */
-      ReportEvent(hEventSource, EVENTLOG_INFORMATION_TYPE, 0, 0, NULL, 1, 0, &lpszStrings[0], NULL);
-      DeregisterEventSource(hEventSource);
-    }
+    m_EventLog.Write(EVENTLOG_INFORMATION_TYPE, A2TConvert(chMsg).c_str());
   }
   else
   {
-    // As we are not running as a service, just write the error to the console.
+    // As we don't have an event log handle, just write the error to the console.
     printf(chMsg);
     printf("\n");
   }

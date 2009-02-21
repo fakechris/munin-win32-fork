@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="Debug"
-			IntermediateDirectory="Debug"
+			OutputDirectory="bin/Debug"
+			IntermediateDirectory="bin/Debug"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="1"
@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;src/;C:\Python25\include"
+				AdditionalIncludeDirectories=".;src/"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32_WINNT=0x500;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -66,8 +66,8 @@
 				AdditionalDependencies="ws2_32.lib Iphlpapi.lib Pdh.lib msi.lib"
 				OutputFile="$(OutDir)/munin-node.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\Python25\libs"
-				DelayLoadDLLs="python25.dll"
+				AdditionalLibraryDirectories=""
+				DelayLoadDLLs=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/munin-node.pdb"
 				SubSystem="1"
@@ -99,11 +99,12 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
-			IntermediateDirectory="Release"
+			OutputDirectory="bin/Release"
+			IntermediateDirectory="bin/Release"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="1"
+			WholeProgramOptimization="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -127,7 +128,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories=".;src/;C:\Python25\include"
+				AdditionalIncludeDirectories=".;src/"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_WIN32_WINNT=0x500;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				ExceptionHandling="1"
@@ -147,19 +148,17 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib Iphlpapi.lib Pdh.lib msi.lib Unicows.lib"
+				AdditionalDependencies="ws2_32.lib Iphlpapi.lib Pdh.lib msi.lib"
 				OutputFile="$(OutDir)/munin-node.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="C:\Python25\libs"
-				DelayLoadDLLs="python25.dll"
+				AdditionalLibraryDirectories=""
+				DelayLoadDLLs=""
 				GenerateDebugInformation="true"
 				GenerateMapFile="true"
 				MapFileName="$(OutDir)/$(ProjectName).map"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -220,14 +219,6 @@
 				</File>
 				<File
 					RelativePath=".\src\plugins\disk\DiskMuninNodePlugin.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\plugins\disk\DiskTimeMuninNodePlugin.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\plugins\disk\DiskTimeMuninNodePlugin.h"
 					>
 				</File>
 				<File
@@ -296,18 +287,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="uptime"
-				>
-				<File
-					RelativePath=".\src\plugins\uptime\UptimeMuninNodePlugin.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\plugins\uptime\UptimeMuninNodePlugin.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="speedfan"
 				>
 				<File
@@ -332,18 +311,22 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="python"
+				Name="external"
 				>
 				<File
-					RelativePath=".\src\plugins\python\PythonMuninNodePlugin.cpp"
+					RelativePath=".\src\plugins\external\ConsolePipe.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\plugins\python\PythonMuninNodePlugin.h"
+					RelativePath=".\src\plugins\external\consolePipe.h"
 					>
 				</File>
 				<File
-					RelativePath=".\src\plugins\python\speedfan.py"
+					RelativePath=".\src\plugins\external\ExternalMuninNodePlugin.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\plugins\external\ExternalMuninNodePlugin.h"
 					>
 				</File>
 			</Filter>
@@ -375,10 +358,26 @@
 				RelativePath=".\src\extra\verinfo.h"
 				>
 			</File>
+			<File
+				RelativePath=".\src\extra\XEventLog.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\extra\XEventLog.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="core"
 			>
+			<File
+				RelativePath=".\src\core\JCSocket.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\core\JCSocket.h"
+				>
+			</File>
 			<File
 				RelativePath=".\src\core\JCThread.h"
 				>
@@ -449,27 +448,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\ClassDiagram1.cd"
-			>
-		</File>
-		<File
-			RelativePath=".\ClassDiagram2.cd"
-			>
-		</File>
-		<File
-			RelativePath=".\ClassDiagram3.cd"
-			>
-		</File>
-		<File
-			RelativePath=".\ClassDiagram4.cd"
-			>
-		</File>
-		<File
 			RelativePath=".\munin-node.rc"
 			>
 		</File>
 		<File
-			RelativePath=".\readme.htm"
+			RelativePath=".\doc\readme.htm"
 			DeploymentContent="true"
 			>
 		</File>

@@ -14,13 +14,6 @@
 #ifndef CIniFile_H
 #define CIniFile_H
 
-// C++ Includes
-#include <string>
-#include <vector>
-
-// C Includes
-#include <stdlib.h>
-
 using namespace std;
 
 #define MAX_KEYNAME    128

@@ -9,7 +9,7 @@ class MBMMuninNodePlugin : public MuninNodePlugin
   mbm::mbm m_MBM;
 public:
   MBMMuninNodePlugin(mbm::sensor_t mode);
-  ~MBMMuninNodePlugin();
+  virtual ~MBMMuninNodePlugin();
 
   virtual const char *GetName() { return m_Name; };
   virtual int GetConfig(char *buffer, int len);

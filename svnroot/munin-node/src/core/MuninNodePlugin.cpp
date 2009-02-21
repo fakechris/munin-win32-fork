@@ -30,6 +30,11 @@ MuninNodePluginLockWrapper::MuninNodePluginLockWrapper(MuninNodePlugin *plugin)
   assert(m_Plugin != NULL); 
 }
 
+MuninNodePluginLockWrapper::~MuninNodePluginLockWrapper()
+{
+  delete m_Plugin;
+}
+
 const char *MuninNodePluginLockWrapper::GetName() 
 {
   return m_Plugin->GetName(); 
@@ -37,13 +42,13 @@ const char *MuninNodePluginLockWrapper::GetName()
 
 int MuninNodePluginLockWrapper::GetConfig(char *buffer, int len) 
 {
-  JCAutoLockCritSec lock(this);
+  JCAutoLockCritSec lock(&m_PluginCritSec);
   return m_Plugin->GetConfig(buffer, len); 
 }
 
 int MuninNodePluginLockWrapper::GetValues(char *buffer, int len) 
 {
-  JCAutoLockCritSec lock(this);
+  JCAutoLockCritSec lock(&m_PluginCritSec);
   return m_Plugin->GetValues(buffer, len); 
 }
 

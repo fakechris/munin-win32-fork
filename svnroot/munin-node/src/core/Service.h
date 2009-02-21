@@ -9,6 +9,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include "../extra/XEventLog.h"
+
 class CService  
 {
 public:
@@ -33,6 +35,7 @@ private:
     static void WINAPI _Handler(DWORD dwOpcode);
 
 	DWORD m_dwThreadID;
+    CXEventLog m_EventLog;
 
 public:
     TCHAR m_szServiceName[256];

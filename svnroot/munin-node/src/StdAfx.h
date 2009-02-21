@@ -6,33 +6,41 @@
 #pragma once
 
 // Change these values to use different versions
-#define WINVER		0x0400
+#define WINVER		0x0500
 //#define _WIN32_WINNT	0x0400
 #define _WIN32_IE	0x0400
 
-#include <winsock2.h>
-#include <windows.h>
-#include <process.h>
+// Memory debugging includes
+#ifdef _DEBUG
+#define _CRTDBG_MAP_ALLOC 
+#include <stdlib.h>
+#include <crtdbg.h>
+#endif
+
+// C Includes
+#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <string>
-#include <stdlib.h>
+
+// Windows Includes
+#include <winsock2.h>
+#include <windows.h>
+#include <process.h>
 #include <tchar.h>
-#include "core/JCThread.h"
-#include "core/TString.h"
+#include <PDHMsg.h>
+#include <netfw.h>
+#include <msi.h>
+#include <Shlwapi.h>
+
+// C++ Includes
+#include <string>
+#include <vector>
+#include <map>
 
 // Includes for plugins
 #include <Pdh.h>
 #include <Tlhelp32.h>
 #include <Iphlpapi.h>
-#ifdef _DEBUG
-#undef _DEBUG
-#define _NDEBUG
-#include <Python.h>
-#undef _NDEBUG
-#define _DEBUG
-#else
-#include <Python.h>
-#endif
+#include <DelayImp.h>
  

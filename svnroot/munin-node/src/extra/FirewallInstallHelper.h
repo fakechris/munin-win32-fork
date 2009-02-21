@@ -3,8 +3,6 @@
 //
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
-#include <netfw.h>
-#include <msi.h>
 
 // Uncomment to get a debug messagebox
 //#define SHOW_DEBUG_MSGBOXES

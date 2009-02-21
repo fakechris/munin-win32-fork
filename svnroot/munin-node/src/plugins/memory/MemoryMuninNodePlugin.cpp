@@ -40,29 +40,29 @@ int MemoryMuninNodePlugin::GetConfig(char *buffer, int len)
     "apps.label apps\n"
     "apps.draw AREA\n"
     "apps.info Memory used by user-space applications.\n"
-    "swap.label swap\n"
-    "swap.draw STACK\n"
-    "swap.info Swap space used.\n"
+    //"swap.label swap\n"
+    //"swap.draw STACK\n"
+    //"swap.info Swap space used.\n"
     "free.label unused\n"
     "free.draw STACK\n"
     "free.info Wasted memory. Memory that is not used for anything at all.\n"
-    "committed.label committed\n"
-    "committed.draw LINE2\n"
-    "committed.warn 625410048\n"
-    "committed.info The amount of memory that would be used if all the memory that's been allocated were to be used.\n"
+    //"committed.label committed\n"
+    //"committed.draw LINE2\n"
+    //"committed.warn 625410048\n"
+    //"committed.info The amount of memory that would be used if all the memory that's been allocated were to be used.\n"
     ".\n", len);
   return 0;
 }
 
 int MemoryMuninNodePlugin::GetValues(char *buffer, int len) 
 {
-  MEMORYSTATUS mem;
-  mem.dwLength = sizeof(MEMORYSTATUS);
-  GlobalMemoryStatus(&mem);
+  MEMORYSTATUSEX mem;
+  mem.dwLength = sizeof(MEMORYSTATUSEX);
+  GlobalMemoryStatusEx(&mem);
   _snprintf(buffer, len, "apps.value %u\n"
     "swap.value %u\n"
     "free.value %u\n"
-    "committed.value %u\n"
-    ".\n", mem.dwTotalPhys-mem.dwAvailPhys, mem.dwTotalPageFile, mem.dwAvailPhys, mem.dwTotalPageFile-mem.dwAvailPageFile);
+    //"committed.value %u\n"
+    ".\n", mem.ullTotalPhys-mem.ullAvailPhys, mem.ullTotalPageFile-mem.ullAvailPageFile, mem.ullAvailPhys);
   return 0;
 }
