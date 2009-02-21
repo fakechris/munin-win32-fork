@@ -16,12 +16,15 @@ public:
   virtual int GetValues(char *buffer, int len);
   virtual bool IsLoaded() { return m_Loaded; };
 
+  static const char *SectionPrefix;
 private:
   bool OpenCounter();
 
   bool m_Loaded;
   std::string m_Name;
   std::string m_SectionName;
+  DWORD m_dwCounterFormat;
+  double m_CounterMultiply;
   HQUERY m_PerfQuery;
   std::vector<std::string> m_CounterNames;
   std::vector<HCOUNTER> m_Counters;

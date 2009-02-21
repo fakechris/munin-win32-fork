@@ -19,6 +19,8 @@
 #include "StdAfx.h"
 #include "PerfCounterMuninNodePlugin.h"
 
+const char *PerfCounterMuninNodePlugin::SectionPrefix = "PerfCounterPlugin_";
+
 PerfCounterMuninNodePlugin::PerfCounterMuninNodePlugin(const std::string &sectionName)
   : m_SectionName(sectionName)
 {
@@ -54,8 +56,8 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
   if (status != ERROR_SUCCESS)
     return false;
 
-  TString objectName = A2TConvert(g_Config.GetValue(m_SectionName.c_str(), "Object", "LogicalDisk"));
-  TString counterName = A2TConvert(g_Config.GetValue(m_SectionName.c_str(), "Counter", "% Disk Time"));
+  TString objectName = A2TConvert(g_Config.GetValue(m_SectionName, "Object", "LogicalDisk"));
+  TString counterName = A2TConvert(g_Config.GetValue(m_SectionName, "Counter", "% Disk Time"));
   
   DWORD counterListLength = 0;  
   DWORD instanceListLength = 0;
@@ -63,10 +65,12 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
   if (status != PDH_MORE_DATA)
     return false;
 
-  TCHAR *counterList = new TCHAR[counterListLength];
-  TCHAR *instanceList = new TCHAR[instanceListLength];
+  TCHAR *counterList = new TCHAR[counterListLength+2];
+  TCHAR *instanceList = new TCHAR[instanceListLength+2];
   counterList[0] = NULL;
   instanceList[0] = NULL;
+  counterList[1] = NULL;
+  instanceList[1] = NULL;
 
   status = PdhEnumObjectItems(NULL, NULL, objectName.c_str(), counterList, &counterListLength, instanceList, &instanceListLength, PERF_DETAIL_EXPERT, 0);
   if (status != ERROR_SUCCESS) {
@@ -87,16 +91,29 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
   delete [] counterList;
   delete [] instanceList;
 
-  if (g_Config.GetValueB(m_SectionName.c_str(), "DropTotal", true)) {
-    assert(*m_CounterNames.end() == std::string("_Total"));
-    // We drop the last instance name as it is _Total
-    m_CounterNames.pop_back();
-  }
-
   TCHAR counterPath[MAX_PATH] = {0};
   HCOUNTER counterHandle;
-  for (size_t i = 0; i < m_CounterNames.size(); i++) {
-    _sntprintf(counterPath, MAX_PATH, _T("\\%s(%s)\\%s"), objectName.c_str(), m_CounterNames[i].c_str(), counterName.c_str());
+  if (!m_CounterNames.empty()) {
+    if (g_Config.GetValueB(m_SectionName, "DropTotal", true)) {
+      assert(m_CounterNames.back().compare("_Total") == 0);
+      // We drop the last instance name as it is _Total
+      m_CounterNames.pop_back();
+    }
+
+    for (size_t i = 0; i < m_CounterNames.size(); i++) {
+      TString instanceNameStr = A2TConvert(m_CounterNames[i]);
+      _sntprintf(counterPath, MAX_PATH, _T("\\%s(%s)\\%s"), objectName.c_str(), instanceNameStr.c_str(), counterName.c_str());
+      // Associate the uptime counter with the query
+      status = PdhAddCounter(m_PerfQuery, counterPath, 0, &counterHandle);
+      if (status != ERROR_SUCCESS)
+        return false;
+      
+      m_Counters.push_back(counterHandle);
+    }
+  } else {
+    // A counter with a single instance (Uptime for example)
+    m_CounterNames.push_back("0");
+    _sntprintf(counterPath, MAX_PATH, _T("\\%s\\%s"), objectName.c_str(), counterName.c_str());
     // Associate the uptime counter with the query
     status = PdhAddCounter(m_PerfQuery, counterPath, 0, &counterHandle);
     if (status != ERROR_SUCCESS)
@@ -109,6 +126,30 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
   status = PdhCollectQueryData(m_PerfQuery);
   if (status != ERROR_SUCCESS)
     return false;
+
+  m_Name = m_SectionName.substr(strlen(PerfCounterMuninNodePlugin::SectionPrefix));
+
+  // Setup Counter Format
+  m_dwCounterFormat = PDH_FMT_DOUBLE;
+  std::string counterFormatStr = g_Config.GetValue(m_SectionName, "CounterFormat", "double");
+  if (!counterFormatStr.compare("double")
+    || !counterFormatStr.compare("float")) {
+    m_dwCounterFormat = PDH_FMT_DOUBLE;
+
+  } else if (!counterFormatStr.compare("int") 
+    || !counterFormatStr.compare("long")) {
+    m_dwCounterFormat = PDH_FMT_LONG;
+
+  } else if (!counterFormatStr.compare("int64") 
+    || !counterFormatStr.compare("longlong") 
+    || !counterFormatStr.compare("large")) {
+    m_dwCounterFormat = PDH_FMT_LARGE;
+
+  } else {
+    assert(!"Unknown CounterFormat!");
+  }
+
+  m_CounterMultiply = g_Config.GetValueF(m_SectionName, "CounterMultiply", 1.0);
 
   return true;
 }
@@ -128,23 +169,30 @@ int PerfCounterMuninNodePlugin::GetConfig(char *buffer, int len)
       return -1;
 
     int printCount;
-    std::string graphTitle = g_Config.GetValue(m_SectionName.c_str(), "GraphTitle", "Disk Time");
-    std::string graphCategory = g_Config.GetValue(m_SectionName.c_str(), "GraphCategory", "system");
+    std::string graphTitle = g_Config.GetValue(m_SectionName, "GraphTitle", "Disk Time");
+    std::string graphCategory = g_Config.GetValue(m_SectionName, "GraphCategory", "system");
+    std::string graphArgs = g_Config.GetValue(m_SectionName, "GraphArgs", "--base 1000 -l 0");
     printCount = _snprintf(buffer, len, "graph_title %s\n"
       "graph_category %s\n"
-      "graph_args --base 1000 -l 0\n"
+      "graph_args %s\n"
       "graph_info %s\n"
       "graph_vlabel %s\n", 
       graphTitle.c_str(), graphCategory.c_str(), 
+      graphArgs.c_str(),
       info->szExplainText, info->szCounterName);
     len -= printCount;
     buffer += printCount;
 
     free(info);
 
+    std::string graphDraw = g_Config.GetValue(m_SectionName, "GraphDraw", "LINE");
+
     assert(m_CounterNames.size() == m_Counters.size());
     for (size_t i = 0; i < m_CounterNames.size(); i++) {
-      printCount = _snprintf(buffer, len, "%s_%i_.label %s\n", m_Name.c_str(), i, m_CounterNames[i].c_str());
+      printCount = _snprintf(buffer, len, "%s_%i_.label %s\n"
+        "%s_%i_.draw %s\n", 
+        m_Name.c_str(), i, m_CounterNames[i].c_str(),
+        m_Name.c_str(), i, graphDraw.c_str());
       len -= printCount;
       buffer += printCount;
     }
@@ -162,14 +210,26 @@ int PerfCounterMuninNodePlugin::GetValues(char *buffer, int len)
 
   status = PdhCollectQueryData(m_PerfQuery);
   if (status != ERROR_SUCCESS)
-    return -1;
-  
+    return -1;  
+
   for (size_t i = 0; i < m_Counters.size(); i++) {
     // Get the formatted counter value    
-    status = PdhGetFormattedCounterValue(m_Counters[i], PDH_FMT_DOUBLE, NULL, &counterValue);
+    status = PdhGetFormattedCounterValue(m_Counters[i], m_dwCounterFormat, NULL, &counterValue);
     if (status != ERROR_SUCCESS)
       return -1;
-    printCount = _snprintf(buffer, len, "%s_%i_.value %.2f\n", m_Name.c_str(), i, counterValue.doubleValue);
+    double value = 0;
+    switch (m_dwCounterFormat) {
+      case PDH_FMT_DOUBLE:        
+        value = counterValue.doubleValue * m_CounterMultiply;
+        break;
+      case PDH_FMT_LONG:
+        value = counterValue.longValue * m_CounterMultiply;
+        break;
+      case PDH_FMT_LARGE:
+        value = counterValue.largeValue * m_CounterMultiply;
+        break;
+    }
+    printCount = _snprintf(buffer, len, "%s_%i_.value %.2f\n", m_Name.c_str(), i, value);
     len -= printCount;
     buffer += printCount;
   }

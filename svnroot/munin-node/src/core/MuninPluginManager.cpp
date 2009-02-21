@@ -32,6 +32,7 @@
 #include "../plugins/disk/DiskTimeMuninNodePlugin.h"
 #include "../plugins/speedfan/SpeedFanNodePlugin.h"
 #include "../plugins/python/PythonMuninNodePlugin.h"
+#include "../plugins/PerfCounterMuninNodePlugin.h"
 
 MuninPluginManager::MuninPluginManager()
 {
@@ -81,6 +82,20 @@ MuninPluginManager::MuninPluginManager()
     }
   }
   
+  const char *perfPrefix = PerfCounterMuninNodePlugin::SectionPrefix;
+  size_t perfPrefixLen = strlen(perfPrefix);
+  for (size_t i = 0; i < g_Config.GetNumKeys(); i++) {
+    std::string keyName = g_Config.GetKeyName(i);
+    if (keyName.compare(0, perfPrefixLen, perfPrefix) == 0) {
+      PerfCounterMuninNodePlugin *plugin = new PerfCounterMuninNodePlugin(keyName);
+      if (plugin->IsLoaded()) {
+        AddPlugin(plugin);
+      } else {
+        _Module.LogEvent("Failed to load PerfCounter plugin: [%s]", keyName.c_str());
+        delete plugin;
+      }
+    }
+  }
 #ifdef _DEBUG
   // Test Plugins
   char buffer[8096];

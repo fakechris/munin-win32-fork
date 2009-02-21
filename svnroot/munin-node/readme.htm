@@ -1,103 +1,113 @@
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>Readme for Munin Node for Windows</title>
 </head>
 <body>
-<h1>
-    Munin Node for Windows v1.4</h1>
-    <hr />
-<p>
-    <span lang="en-us">munin-node-win32 AKA Munin Node for Windows, is a</span> 
-    Windows client for the <a href="http://munin.projects.linpro.no/">Munin</a> 
-    monitoring system.</p>
-<p>
-    <span lang="en-us">It is written in C++ with most plugins built into the exe. 
-    Which is different from the standard munin-node client, which only uses external 
-    plugins written as shell and Perl scripts.</span></p>
-<h3>
-    <span lang="en-us">Command Line Usage</span></h3>
+<h1>Munin Node for Windows v1.4</h1>
+<hr />
+<p>munin-node-win32 AKA Munin Node for Windows, is a Windows client
+for the <a href="http://munin.projects.linpro.no/">Munin</a>
+monitoring system.</p>
+<p>It is written in C++ with most plugins built into the exe. Which
+is different from the standard munin-node client, which only uses
+external plugins written as shell and Perl scripts.</p>
+<h3>Command Line Usage</h3>
 <ul>
-    <li><i>-install</i> <span lang="en-us">I</span>nstall as a <span lang="en-us">system
-        </span>service<span lang="en-us">, also adds an exception to Windows Firewall</span></li>
-    <li><i>-uninstall</i> <span lang="en-us">R</span>emove<span lang="en-us">s</span> 
-        the <span lang="en-us">installed </span>service.<span lang="en-us"> The Windows 
-        Firewall exception is also removed</span></li>
-    <li><i>-quiet</i> Close the console window, running in the background.</li>
-    <li><i>-run</i> Run as a normal program, rather than a service.</li>
+    <li><i>-install</i> Install as a system service, also adds an
+        exception to Windows Firewall</li>
+    <li><i>-uninstall</i> Removes the installed service. The Windows
+        Firewall exception is also removed</li>
+    <li><i>-quiet</i> Close the console window, running in the
+        background.</li>
+    <li><i>-run</i> Run as a normal program, rather than a
+        service.</li>
 </ul>
-<h3>
-    <span lang="en-us">Configuration File</span></h3>
-<p>
-    <span lang="en-us">The configuration file munin-node.ini uses the standard 
-    Windows INI file format.</span></p>
-<p>
-    <span lang="en-us">The main section is the <b>[Plugins]</b> section which 
-    defines which plugins are enabled and which are disabled. Use 1 to enable and 0 
-    to disable. Most plugins handle failing to load gracefully, however some may 
-    have a bug (if so please report :).</span></p>
-<p>
-    <span lang="en-us">You can disable plugins you don&#39;t want to save on memory and 
-    cpu usage. The Python and Performance Counter plugins use more memory compared 
-    to the others, about 1MB for the Performance Counter and 3MB for the Python 
-    plugin.</span></p>
-<h3>
-    <span lang="en-us">Plugins</span></h3>
+<h3>Configuration File</h3>
+<p>The configuration file munin-node.ini uses the standard Windows
+INI file format.</p>
+<p>The main section is the <b>[Plugins]</b> section which defines
+which plugins are enabled and which are disabled. Use 1 to enable
+and 0 to disable. Most plugins handle failing to load gracefully,
+however some may have a bug (if so please report :).</p>
+<p>You can disable plugins you don't want to save on memory and cpu
+usage. The Python and Performance Counter plugins use more memory
+compared to the others, about 1MB for the Performance Counter and
+3MB for the Python plugin.</p>
+<h3>Plugins</h3>
 <ul>
-    <li><span lang="en-us">CPU (cpu)</span><ul>
-        <li><span lang="en-us">Reports the current user cpu usage</span></li>
-            </ul>
-        </li>
-        <li><span lang="en-us">Disk (df)</span><ul>
-            <li><span lang="en-us">Reports disk drive space usage</span></li>
+    <li>CPU (cpu)
+        <ul>
+        <li>Reports the current user cpu usage</li>
         </ul>
     </li>
-    <li><span lang="en-us">DiskTime (disktime)</span><ul>
-        <li><span lang="en-us">Reports % of time the disk was busy</span></li>
-            </ul>
-        </li>
-        <li><span lang="en-us">HD (hdd)</span><ul>
-            <li><span lang="en-us">Reports HardDrive temperature</span></li>
+    <li>Disk (df)
+        <ul>
+        <li>Reports disk drive space usage</li>
+        <li>Configuration in <b>[DiskPlugin]</b> section. <b>CounterPath</b>
+        is the Performance Counter path to the System Up Time counter.</li>        
         </ul>
     </li>
-    <li><span lang="en-us">Memory (memory)</span><ul>
-        <li><span lang="en-us">Reports memory usage</span></li>
-            </ul>
-        </li>
-        <li><span lang="en-us">Process (processes)</span><ul>
-            <li><span lang="en-us">Reports process and thread count</span></li>
+    <li>DiskTime (disktime)
+        <ul>
+        <li>Reports % of time the disk was busy</li>
+        <li>Configuration in <b>[DiskTime]</b> section</li>
         </ul>
     </li>
-    <li><span lang="en-us">Network (network)</span><ul>
-        <li><span lang="en-us">Reports network bytes send and recived</span></li>
-            </ul>
-        </li>
-        <li><span lang="en-us">Uptime (uptime)</span><ul>
-            <li><span lang="en-us">Reports system uptime in days</span></li>
+    <li>HD (hdd)
+        <ul>
+        <li>Reports HardDrive temperature</li>
         </ul>
     </li>
-    <li><span lang="en-us">MBM (mbm, mbm_volt, mbm_fan, mbm_cpu)</span><ul>
-        <li><span lang="en-us">Reports sensor data from <a href="http://en.wikipedia.org/wiki/Motherboard_Monitor">Motherboard Monitor</a></span></li>
-            </ul>
+    <li>Memory (memory)
+        <ul>
+        <li>Reports memory usage</li>
+        </ul>
+    </li>
+    <li>Process (processes)
+        <ul>
+        <li>Reports process and thread count</li>
+        </ul>
         </li>
-    </ul>
-    <h3>Version History</h3>
-    <ul>
+    <li>Network (network)
+        <ul>
+        <li>Reports network bytes send and recived</li>
+        </ul>
+    </li>
+    <li>Uptime (uptime)
+        <ul>
+        <li>Reports system uptime in days</li>
+        <li>Configuration in <b>[UptimePlugin]</b> section</li>
+        </ul>
+    </li>
+    <li>MBM (mbm, mbm_volt, mbm_fan, mbm_cpu)
+        <ul>
+        <li>Reports sensor data from 
+        <a href="http://en.wikipedia.org/wiki/Motherboard_Monitor">Motherboard Monitor</a></li>
+        </ul>
+    </li>
+</ul>
+<h3>Version History</h3>
+<ul>
     <li>v1.5 05/24/2008</li>
+    <li>
         <ul>
         <li>Plugin Changes</li>
-        <ul>
-            <li><span lang="en-us">Added Python Plugin, external plugins written Python now 
-                supported</span></li>
-                        <li><span lang="en-us">Added DiskTime Plugin</span></li>
-                        <li><span lang="en-us">Improved error handling in Cpu Plugin</span></li>
-                    </ul>
-                </li>
-                <li><span lang="en-us">Added readme documention</span></li>
-                <li><span lang="en-us">Updated <i>-install</i> / <i>-uninstall</i> switches to 
-                    handle Window Firewall exceptions</span></li>
-                <li><span lang="en-us">Now Unicode compatiable</span></li>
+        <li>
+            <ul>
+            <li>Added Python Plugin, external plugins written Python now
+            supported</li>
+            <li>Added DiskTime Plugin</li>
+            <li>Improved error handling in Cpu Plugin</li>
             </ul>
         </li>
-    </ul>
+        <li>Added readme documention</li>
+        <li>Updated <i>-install</i> / <i>-uninstall</i> switches to handle
+        Window Firewall exceptions</li>
+        <li>Now Unicode compatiable</li>
+        </ul>
+    </li>
+</ul>
 </body>
 </html>
