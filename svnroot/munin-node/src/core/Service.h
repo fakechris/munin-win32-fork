@@ -27,6 +27,8 @@ public:
     BOOL Uninstall(DWORD dwTimeout = 10000);
 	void LogEvent(LPCSTR pszFormat, ...);
     void SetServiceStatus(DWORD dwState);
+    void SetQuiet(bool bQuiet) { m_bQuiet = bQuiet; };
+    void ShowMessage(LPCTSTR szMessage);
 
     LPCTSTR GetServiceName() { return m_szServiceName; };
     LPCTSTR GetServiceDisplayName() { return m_szServiceDisplayedName; };
@@ -43,6 +45,7 @@ public:
     SERVICE_STATUS_HANDLE m_hServiceStatus;
     SERVICE_STATUS m_status;
 	BOOL m_bService;
+    bool m_bQuiet;
 };
 
 extern CService _Module;

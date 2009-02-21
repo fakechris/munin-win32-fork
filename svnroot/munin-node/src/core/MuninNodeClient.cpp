@@ -19,6 +19,7 @@
 #include "StdAfx.h"
 #include "MuninNodeClient.h"
 #include "Service.h"
+#include "../extra/verinfo.h"
 
 MuninNodeClient::MuninNodeClient(JCSocket *client, JCThread *server, MuninPluginManager *pluginManager) 
   : m_Client(client)
@@ -119,7 +120,10 @@ void *MuninNodeClient::Entry()
       break;
 
     } else if (strstr(buffer, "version") == buffer) {   
-      ret = _snprintf(buffer, BUFFER_SIZE, "munin node on %s version: %s\n", hostname, _Module.GetServiceDisplayName());
+      // Read in Version Infomation
+      CFileVersionInfo ver;
+      ver.Open(GetModuleHandle(NULL));
+      ret = _snprintf(buffer, BUFFER_SIZE, "munin node on %s version: Munin Node for Windows %i.%i.%i\n", hostname, ver.GetFileVersionMajor(), ver.GetFileVersionMinor(), ver.GetFileVersionQFE());
       ret = SendLine(buffer);        
 
     } else if (strstr(buffer, "nodes") == buffer) {        

@@ -12,7 +12,7 @@ CService _Module;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CService::CService()
+CService::CService() : m_bQuiet(false)
 {
   
 }
@@ -179,7 +179,7 @@ BOOL CService::Install()
   SC_HANDLE hSCM = ::OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
   if (hSCM == NULL)
   {
-    MessageBox(NULL, _T("Couldn't open service manager"), m_szServiceName, MB_OK);
+    ShowMessage(_T("Couldn't open service manager"));
     return FALSE;
   }
 
@@ -197,7 +197,7 @@ BOOL CService::Install()
   if (hService == NULL)
   {
     ::CloseServiceHandle(hSCM);
-    MessageBox(NULL, _T("Couldn't create service"), m_szServiceName, MB_OK);
+    ShowMessage(_T("Couldn't create service"));
     return FALSE;
   }
 
@@ -205,7 +205,7 @@ BOOL CService::Install()
   if (FAILED(AddApplicationToExceptionList(szFilePath, m_szServiceName))) 
   {
     ::CloseServiceHandle(hSCM);
-    MessageBox(NULL, _T("Couldn't add firewall excception rule"), m_szServiceName, MB_OK);
+    ShowMessage(_T("Couldn't add firewall excception rule"));
   }
 
   if (dwStartupType == SERVICE_AUTO_START)
@@ -225,7 +225,7 @@ BOOL CService::Uninstall(DWORD dwTimeout)
 
   if (hSCM == NULL)
   {
-    MessageBox(NULL, _T("Couldn't open service manager"), m_szServiceName, MB_OK);
+    ShowMessage(_T("Couldn't open service manager"));
     return FALSE;
   }
 
@@ -234,7 +234,7 @@ BOOL CService::Uninstall(DWORD dwTimeout)
   if (hService == NULL)
   {
     ::CloseServiceHandle(hSCM);
-    MessageBox(NULL, _T("Couldn't open service"), m_szServiceName, MB_OK);
+    ShowMessage(_T("Couldn't open service"));
     return FALSE;
   }
   SERVICE_STATUS status = {0};
@@ -254,7 +254,7 @@ BOOL CService::Uninstall(DWORD dwTimeout)
 
       if ( GetTickCount() - dwStartTime > dwTimeout )
       {
-        MessageBox(NULL, _T("Service could not be stopped"), NULL, MB_OK);
+        ShowMessage(_T("Service could not be stopped"));
         return FALSE;
       }
     }
@@ -267,12 +267,12 @@ BOOL CService::Uninstall(DWORD dwTimeout)
   // Remove firewall rule
   if (FAILED(RemoveApplicationFromExceptionList(szFilePath))) 
   {
-    MessageBox(NULL, _T("Couldn't remove firewall excception rule"), m_szServiceName, MB_OK);
+    ShowMessage(_T("Couldn't remove firewall excception rule"));
   }
 
   if (!m_EventLog.UnRegisterSource()) 
   {
-    MessageBox(NULL, _T("Failed to unregister event log"), m_szServiceName, MB_OK);
+    ShowMessage(_T("Failed to unregister event log"));
   }
 
   BOOL bDelete = ::DeleteService(hService);
@@ -282,7 +282,7 @@ BOOL CService::Uninstall(DWORD dwTimeout)
   if (bDelete)
     return TRUE;
 
-  MessageBox(NULL, _T("Service could not be deleted"), m_szServiceName, MB_OK);
+  ShowMessage(_T("Service could not be deleted"));
   return FALSE;
 }
 
@@ -307,6 +307,14 @@ BOOL CService::IsInstalled()
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Logging functions
+void CService::ShowMessage(LPCTSTR szMessage)
+{
+  if (m_bQuiet)
+    _tprintf(_T("%s\n"), szMessage);
+  else
+    MessageBox(NULL, szMessage, m_szServiceName, MB_OK);
+}
+
 void CService::LogEvent(LPCSTR pFormat, ...)
 {
   char chMsg[512];    

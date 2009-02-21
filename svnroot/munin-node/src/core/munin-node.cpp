@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
   g_Config.ReadFile();
 
   // Prepare Service modules
-  _Module.Init(_T("munin-node"), displayName);
+  _Module.Init(_T("munin-node"), _T("Munin Node for Windows"));
   _Module.m_bService = TRUE;  
 
   // Parse arguments
@@ -83,6 +83,10 @@ int main(int argc, char* argv[])
       else if (!stricmp(pToken, "quiet"))
       {
         FreeConsole();
+      }
+      else if (!stricmp(pToken, "unattended"))
+      {
+        _Module.SetQuiet(true);
       }
       else if (!stricmp(pToken, "run"))
       {
