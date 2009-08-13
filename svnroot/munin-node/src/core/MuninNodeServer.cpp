@@ -54,7 +54,9 @@ void *MuninNodeServer::Entry()
     // Wait for new client connection
     JCSocket *client = new JCSocket();
     if (m_ServerSocket.Accept(client)) {
-      _Module.LogEvent("Connection from %s", inet_ntoa(client->m_Address.sin_addr));
+      // TODO: Add ip address matching, http://stackoverflow.com/questions/594112/matching-an-ip-to-a-cidr-mask-in-php5
+      const char *ipAddress = inet_ntoa(client->m_Address.sin_addr);
+      _Module.LogEvent("Connection from %s", ipAddress);
       // Start child thread to process client socket
       MuninNodeClient *clientThread = new MuninNodeClient(client, this, &m_PluginManager);
       clientThread->Run();
