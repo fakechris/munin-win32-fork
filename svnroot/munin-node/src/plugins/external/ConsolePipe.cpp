@@ -603,8 +603,8 @@ void CConsolePipe::Cleanup() {
 #endif
 			TerminateThread(m_hListenerThread, 0);
 		}
-		else
-			CloseHandle(m_hListenerThread);
+    // yudhi: always close handle whatever happened
+		CloseHandle(m_hListenerThread);
 
 		m_hListenerThread = NULL;
 	}
