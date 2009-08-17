@@ -204,7 +204,6 @@ BOOL CService::Install()
   // Adding firewall rule
   if (FAILED(AddApplicationToExceptionList(szFilePath, m_szServiceName))) 
   {
-    ::CloseServiceHandle(hSCM);
     ShowMessage(_T("Couldn't add firewall excception rule"));
   }
 

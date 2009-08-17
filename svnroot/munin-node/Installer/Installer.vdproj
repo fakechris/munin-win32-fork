@@ -15,6 +15,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_1DBB72A0F92741A1B3597DC4BF7CCD4A"
+        "OwnerKey" = "8:_3BE55B6D55334E5897C7B6B3FDEFBE73"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_3BE55B6D55334E5897C7B6B3FDEFBE73"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -29,6 +35,12 @@
         {
         "MsmKey" = "8:_868C4F1BEBF8AEB5494EBF2F574E4777"
         "OwnerKey" = "8:_3BE55B6D55334E5897C7B6B3FDEFBE73"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_90A14EF6935D4651A07947EAB022DD52"
+        "OwnerKey" = "8:_1DBB72A0F92741A1B3597DC4BF7CCD4A"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -78,7 +90,7 @@
             "Enabled" = "11:TRUE"
             "PromptEnabled" = "11:TRUE"
             "PrerequisitesLocation" = "2:1"
-            "Url" = "8:"
+            "Url" = "8:https://sourceforge.net/projects/munin-nodewin32/"
             "ComponentsUrl" = "8:"
                 "Items"
                 {
@@ -110,10 +122,15 @@
             "Enabled" = "11:TRUE"
             "PromptEnabled" = "11:TRUE"
             "PrerequisitesLocation" = "2:1"
-            "Url" = "8:http://www.jory.info/"
+            "Url" = "8:http://sourceforge.net/projects/munin-nodewin32/"
             "ComponentsUrl" = "8:"
                 "Items"
                 {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Visual.C++.9.0.x86"
+                    {
+                    "Name" = "8:Visual C++ Runtime Libraries (x86)"
+                    "ProductCode" = "8:Microsoft.Visual.C++.9.0.x86"
+                    }
                     "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.3.1"
                     {
                     "Name" = "8:Windows Installer 3.1"
@@ -364,14 +381,14 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Munin Node for Windows"
-        "ProductCode" = "8:{D9AE9FFA-E37A-4181-91AE-07B6FC9A1B9E}"
-        "PackageCode" = "8:{D5798C05-2CE7-400C-ACFC-D57C12F59661}"
+        "ProductCode" = "8:{9A19435C-513C-433E-8E3C-C1718EF14759}"
+        "PackageCode" = "8:{6FC256FE-393C-4AE8-83E9-7E29A66ED5A4}"
         "UpgradeCode" = "8:{97D798E1-24D5-4695-B903-DA8938ED92F4}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.5.0"
+        "ProductVersion" = "8:1.6.0"
         "Manufacturer" = "8:Jory Stone"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:http://www.jory.info/"
@@ -1108,6 +1125,34 @@
         }
         "MergeModule"
         {
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_1DBB72A0F92741A1B3597DC4BF7CCD4A"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:policy_9_0_Microsoft_VC90_CRT_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:TRUE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_90A14EF6935D4651A07947EAB022DD52"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:microsoft_vc90_crt_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:TRUE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
         }
         "ProjectOutput"
         {

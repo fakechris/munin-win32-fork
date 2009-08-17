@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,5,0,0
- PRODUCTVERSION 1,5,0,0
+ FILEVERSION 1,6,0,0
+ PRODUCTVERSION 1,6,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -72,7 +72,7 @@ BEGIN
             VALUE "FileDescription", "munin-node for Windows"
             VALUE "FileVersion", "1, 6, 0, 0"
             VALUE "InternalName", "munin-node-win32"
-            VALUE "LegalCopyright", "Copyright (C) 2006-2008 Jory 'jcsston' Stone"
+            VALUE "LegalCopyright", "Copyright (C) 2006-2009 Jory 'jcsston' Stone"
             VALUE "OriginalFilename", "munin-node.exe"
             VALUE "ProductName", "munin-node for Windows"
             VALUE "ProductVersion", "1, 6, 0, 0"
