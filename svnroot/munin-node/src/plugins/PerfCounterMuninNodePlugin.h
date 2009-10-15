@@ -15,6 +15,7 @@ public:
   static const char *SectionPrefix;
 private:
   bool OpenCounter();
+  void CloseCounter();
 
   bool m_Loaded;
   std::string m_SectionName;

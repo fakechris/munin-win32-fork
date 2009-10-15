@@ -1,20 +1,20 @@
 /* This file is part of munin-node-win32
- * Copyright (C) 2006-2008 Jory Stone (jcsston@jory.info)
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+* Copyright (C) 2006-2008 Jory Stone (jcsston@jory.info)
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 
 #include "StdAfx.h"
 #include "PerfCounterMuninNodePlugin.h"
@@ -22,7 +22,7 @@
 const char *PerfCounterMuninNodePlugin::SectionPrefix = "PerfCounterPlugin_";
 
 PerfCounterMuninNodePlugin::PerfCounterMuninNodePlugin(const std::string &sectionName)
-  : m_SectionName(sectionName)
+: m_SectionName(sectionName)
 {
   m_PerfQuery = NULL;
   m_Loaded = OpenCounter();
@@ -30,15 +30,7 @@ PerfCounterMuninNodePlugin::PerfCounterMuninNodePlugin(const std::string &sectio
 
 PerfCounterMuninNodePlugin::~PerfCounterMuninNodePlugin()
 {
-  for (size_t i = 0; i < m_Counters.size(); i++) {
-    // Close the counters
-    PdhRemoveCounter(m_Counters[i]);
-  }
-
-  if (m_PerfQuery != NULL) {
-    // Close the query
-    PdhCloseQuery(&m_PerfQuery);
-  }
+  CloseCounter();
 }
 
 bool PerfCounterMuninNodePlugin::OpenCounter()
@@ -58,7 +50,11 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
 
   TString objectName = A2TConvert(g_Config.GetValue(m_SectionName, "Object", "LogicalDisk"));
   TString counterName = A2TConvert(g_Config.GetValue(m_SectionName, "Counter", "% Disk Time"));
-  
+
+  // refresh object list
+  DWORD objectlistLength = 0;
+  status = PdhEnumObjects(NULL, NULL, NULL, &objectlistLength, PERF_DETAIL_EXPERT, TRUE);
+
   DWORD counterListLength = 0;  
   DWORD instanceListLength = 0;
   status = PdhEnumObjectItems(NULL, NULL, objectName.c_str(), NULL, &counterListLength, NULL, &instanceListLength, PERF_DETAIL_EXPERT, 0);
@@ -100,6 +96,38 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
       m_CounterNames.pop_back();
     }
 
+    if (wcscmp(objectName.c_str(), L"Network Interface") == 0)
+    {
+      std::vector<std::string> bak_CounterNames;
+      bak_CounterNames.assign(m_CounterNames.begin(), m_CounterNames.end());
+      m_CounterNames.clear();
+      for (size_t i = 0; i < bak_CounterNames.size(); i++)
+      {
+        if (bak_CounterNames[i].find("MS TCP Loopback interface") != string::npos)
+          continue;
+        if (bak_CounterNames[i].find("VMware Virtual Ethernet Adapter") != string::npos)
+          continue;
+        m_CounterNames.push_back(bak_CounterNames[i]);
+      }
+    }
+
+    if (wcscmp(objectName.c_str(), L"Process") == 0)
+    {
+      std::string filter_name = g_Config.GetValue(m_SectionName, "FilterProcess", "explorer");
+      std::transform(filter_name.begin(), filter_name.end(), filter_name.begin(), tolower);
+      std::vector<std::string> bak_CounterNames;
+      bak_CounterNames.assign(m_CounterNames.begin(), m_CounterNames.end());
+      m_CounterNames.clear();
+      for (size_t i = 0; i < bak_CounterNames.size(); i++)
+      {
+        std::string lower_name=bak_CounterNames[i];
+        std::transform(bak_CounterNames[i].begin(), bak_CounterNames[i].end(), lower_name.begin(), tolower);
+        if (lower_name.find(filter_name) == string::npos)
+          continue;
+        m_CounterNames.push_back(bak_CounterNames[i]);
+      }
+    }
+
     for (size_t i = 0; i < m_CounterNames.size(); i++) {
       TString instanceNameStr = A2TConvert(m_CounterNames[i]);
       _sntprintf(counterPath, MAX_PATH, _T("\\%s(%s)\\%s"), objectName.c_str(), instanceNameStr.c_str(), counterName.c_str());
@@ -107,7 +135,7 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
       status = PdhAddCounter(m_PerfQuery, counterPath, 0, &counterHandle);
       if (status != ERROR_SUCCESS)
         return false;
-      
+
       m_Counters.push_back(counterHandle);
     }
   } else {
@@ -118,10 +146,10 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
     status = PdhAddCounter(m_PerfQuery, counterPath, 0, &counterHandle);
     if (status != ERROR_SUCCESS)
       return false;
-    
+
     m_Counters.push_back(counterHandle);
   }
-  
+
   // Collect init data
   status = PdhCollectQueryData(m_PerfQuery);
   if (status != ERROR_SUCCESS)
@@ -134,16 +162,16 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
   std::string counterFormatStr = g_Config.GetValue(m_SectionName, "CounterFormat", "double");
   if (!counterFormatStr.compare("double")
     || !counterFormatStr.compare("float")) {
-    m_dwCounterFormat = PDH_FMT_DOUBLE;
+      m_dwCounterFormat = PDH_FMT_DOUBLE;
 
   } else if (!counterFormatStr.compare("int") 
     || !counterFormatStr.compare("long")) {
-    m_dwCounterFormat = PDH_FMT_LONG;
+      m_dwCounterFormat = PDH_FMT_LONG;
 
   } else if (!counterFormatStr.compare("int64") 
     || !counterFormatStr.compare("longlong") 
     || !counterFormatStr.compare("large")) {
-    m_dwCounterFormat = PDH_FMT_LARGE;
+      m_dwCounterFormat = PDH_FMT_LARGE;
 
   } else {
     assert(!"Unknown CounterFormat!");
@@ -154,12 +182,51 @@ bool PerfCounterMuninNodePlugin::OpenCounter()
   return true;
 }
 
+void PerfCounterMuninNodePlugin::CloseCounter()
+{
+  for (size_t i = 0; i < m_Counters.size(); i++) {
+    // Close the counters
+    PdhRemoveCounter(m_Counters[i]);
+  }
+
+  if (m_PerfQuery != NULL) {
+    // Close the query
+    PdhCloseQuery(&m_PerfQuery);
+    m_PerfQuery = NULL;
+  }	
+
+  m_Counters.clear();
+  m_CounterNames.clear();
+}
+
 int PerfCounterMuninNodePlugin::GetConfig(char *buffer, int len) 
 {  
+  if (m_Counters.empty())
+  {
+    string object = g_Config.GetValue(m_SectionName, "Object", "LogicalDisk");
+    if (object.find("Process") == 0) // Process
+    {
+      CloseCounter();
+      // reopen counter
+      m_Loaded = OpenCounter();
+    }
+  }
+
   if (!m_Counters.empty()) {
     PDH_STATUS status;  
     DWORD infoSize = 0;
     status = PdhGetCounterInfo(m_Counters[0], TRUE, &infoSize, NULL);
+    if (status == PDH_INVALID_HANDLE)
+    {
+      string object = g_Config.GetValue(m_SectionName, "Object", "LogicalDisk");
+      if (object.find("Process") == 0) // Process
+      {
+        CloseCounter();
+        // reopen counter
+        m_Loaded = OpenCounter();
+        status = PdhGetCounterInfo(m_Counters[0], TRUE, &infoSize, NULL);
+      }
+    }
     if (status != PDH_MORE_DATA)
       return -1;
 
@@ -179,7 +246,8 @@ int PerfCounterMuninNodePlugin::GetConfig(char *buffer, int len)
       "graph_vlabel %s\n", 
       graphTitle.c_str(), graphCategory.c_str(), 
       graphArgs.c_str(),
-      info->szExplainText, info->szCounterName);
+      T2AConvert(info->szExplainText).c_str(), 
+      T2AConvert(info->szCounterName).c_str());
     len -= printCount;
     buffer += printCount;
 
@@ -188,25 +256,25 @@ int PerfCounterMuninNodePlugin::GetConfig(char *buffer, int len)
     std::string graphDraw = g_Config.GetValue(m_SectionName, "GraphDraw", "LINE");
 
     assert(m_CounterNames.size() == m_Counters.size());
-      // We handle multiple counters
-      for (size_t i = 0; i < m_CounterNames.size(); i++) {
-        if (i == 0) {        
-          // First counter gets a normal name
-          printCount = _snprintf(buffer, len, "%s.label %s\n"
-            "%s.draw %s\n", 
-            m_Name.c_str(), m_CounterNames[i].c_str(),
-            m_Name.c_str(), graphDraw.c_str());
-        } else {
-          // Rest of the counters are numbered
-          printCount = _snprintf(buffer, len, "%s_%i_.label %s\n"
-            "%s_%i_.draw %s\n", 
-            m_Name.c_str(), i, m_CounterNames[i].c_str(),
-            m_Name.c_str(), i, graphDraw.c_str());
-        }
-        len -= printCount;
-        buffer += printCount;
+    // We handle multiple counters
+    for (size_t i = 0; i < m_CounterNames.size(); i++) {
+      if (i == 0) {        
+        // First counter gets a normal name
+        printCount = _snprintf(buffer, len, "%s.label %s\n"
+          "%s.draw %s\n", 
+          m_Name.c_str(), m_CounterNames[i].c_str(),
+          m_Name.c_str(), graphDraw.c_str());
+      } else {
+        // Rest of the counters are numbered
+        printCount = _snprintf(buffer, len, "%s_%i_.label %s\n"
+          "%s_%i_.draw %s\n", 
+          m_Name.c_str(), i, m_CounterNames[i].c_str(),
+          m_Name.c_str(), i, graphDraw.c_str());
       }
+      len -= printCount;
+      buffer += printCount;
     }
+  }
 
   strncat(buffer, ".\n", len);
   return 0;
@@ -219,6 +287,17 @@ int PerfCounterMuninNodePlugin::GetValues(char *buffer, int len)
   int printCount;
 
   status = PdhCollectQueryData(m_PerfQuery);
+  if (status == PDH_NO_DATA || status == PDH_INVALID_HANDLE)
+  {
+    string object = g_Config.GetValue(m_SectionName, "Object", "LogicalDisk");
+    if (object.find("Process") == 0) // Process
+    {
+      CloseCounter();
+      // reopen counter
+      m_Loaded = OpenCounter();
+      status = PdhCollectQueryData(m_PerfQuery);		  
+    }
+  }
   if (status != ERROR_SUCCESS)
     return -1;  
 
